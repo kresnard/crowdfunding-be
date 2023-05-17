@@ -1,4 +1,4 @@
-module bwastartup
+module crowdfunding
 
 go 1.19
 

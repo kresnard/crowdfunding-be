@@ -1,9 +1,9 @@
 package main
 
 import (
-	"bwastartup/auth"
-	"bwastartup/handler"
-	"bwastartup/user"
+	"crowdfunding/auth"
+	"crowdfunding/handler"
+	"crowdfunding/user"
 	"log"
 
 	"github.com/gin-gonic/gin"
