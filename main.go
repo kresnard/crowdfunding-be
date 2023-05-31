@@ -49,6 +49,7 @@ func main() {
 
 	api.GET("/campaigns", campaignhandler.GetCampaigns)
 	api.GET("/campaigns/:id", campaignhandler.GetCampaign)
+	api.POST("/campaigns", authMiddlewre(authService, userService), campaignhandler.CreateCampaign)
 
 	api.GET("/campaigns/:id/transactions", authMiddlewre(authService, userService), transactionHandler.GetCampaignTransactions)
 
