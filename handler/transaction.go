@@ -4,6 +4,7 @@ import (
 	"crowdfunding/helper"
 	"crowdfunding/transaction"
 	"crowdfunding/user"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -81,4 +82,28 @@ func (h *transactionHandler) CreateTransaction(c *gin.Context) {
 
 	response := helper.APIResponse("Success to createt transaction", http.StatusOK, "success", transaction.FormatTransaction(newTransaction))
 	c.JSON(http.StatusOK, response)
+}
+
+func (h *transactionHandler) GetNotification(c *gin.Context) {
+	var input transaction.TransactionNotificationInput
+
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		response := helper.APIResponse("Failed process notification", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	fmt.Print("input", input)
+
+	err = h.service.ProcessPayment(input)
+	if err != nil {
+		response := helper.APIResponse("Failed process notification", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	fmt.Print("input", input)
+
+	c.JSON(http.StatusOK, input)
 }
