@@ -5,10 +5,12 @@ import (
 	"crowdfunding/campaign"
 	"crowdfunding/handler"
 	"crowdfunding/helper"
+	"crowdfunding/payment"
 	"crowdfunding/transaction"
 	"crowdfunding/user"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
@@ -18,7 +20,7 @@ import (
 )
 
 func main() {
-	dsn := "root:password@tcp(127.0.0.1:3306)/crowdfunding?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := os.Getenv("DB_CONNECTION_STRING")
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
@@ -30,9 +32,10 @@ func main() {
 	transactionRepository := transaction.NewRepository(db)
 
 	userService := user.NewService(userRepository)
-	campaignService := campaign.NewService(campaignRepository)
-	transactionService := transaction.NewService(transactionRepository, campaignRepository)
 	authService := auth.NewService()
+	campaignService := campaign.NewService(campaignRepository)
+	paymentService := payment.NewService()
+	transactionService := transaction.NewService(transactionRepository, campaignRepository, paymentService)
 
 	userHandler := handler.NewUserHandler(userService, authService)
 	campaignhandler := handler.NewCampaignHandler(campaignService)

@@ -1,41 +1,49 @@
 package payment
 
 import (
-	"crowdfunding/transaction"
 	"crowdfunding/user"
-	"fmt"
+	"os"
 	"strconv"
 
-	"github.com/midtrans/midtrans-go"
-	"github.com/midtrans/midtrans-go/snap"
+	midtrans "github.com/veritrans/go-midtrans"
 )
 
 type service struct {
 }
 
 type Service interface {
-	GetToken(transaction transaction.Transaction, user user.User) string
+	GetPaymentURL(transaction Transaction, user user.User) (string, error)
 }
 
 func NewService() *service {
 	return &service{}
 }
 
-func (s *service) GetToken(transaction transaction.Transaction, user user.User) string {
-	midtrans.ServerKey = "YOUR-SERVER-KEY"
-	midtrans.Environment = midtrans.Sandbox
+func (s *service) GetPaymentURL(transaction Transaction, user user.User) (string, error) {
+	midclient := midtrans.NewClient()
+	midclient.ServerKey = os.Getenv("SERVER_KEY")
+	midclient.ClientKey = os.Getenv("CLIENT_KEY")
+	midclient.APIEnvType = midtrans.Sandbox
 
-	req := &snap.Request{
+	snapGateway := midtrans.SnapGateway{
+		Client: midclient,
+	}
+
+	snapReq := &midtrans.SnapReq{
+		CustomerDetail: &midtrans.CustDetail{
+			Email: user.Email,
+			FName: user.Name,
+		},
 		TransactionDetails: midtrans.TransactionDetails{
 			OrderID:  strconv.Itoa(transaction.ID),
 			GrossAmt: int64(transaction.Amount),
 		},
-		CustomerDetail: &midtrans.CustomerDetails{
-			Email: user.Email,
-			FName: user.Name,
-		},
 	}
 
-	snapResp := CreateTransaction(req)
-	fmt.Println("Response :", snapResp)
+	snapTokenResp, err := snapGateway.GetToken(snapReq)
+	if err != nil {
+		return "", err
+	}
+
+	return snapTokenResp.RedirectURL, nil
 }
